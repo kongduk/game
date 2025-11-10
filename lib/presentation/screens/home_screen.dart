@@ -48,21 +48,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final player1Name = player1Controller.text.trim();
     final player2Name = player2Controller.text.trim();
-
     final gameId = const Uuid().v4();
     final gameState = GameLogic.initializeGame([player1Name, player2Name]);
 
-    final repository = ref.read(gameRepositoryProvider);
-    await repository.createGame(gameState.copyWith(id: gameId));
+    try {
+      final repository = ref.read(gameRepositoryProvider);
+      await repository.createGame(gameState.copyWith(id: gameId));
 
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              GameScreen(gameId: gameId, playerId: 'player_0'),
-        ),
-      );
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                GameScreen(gameId: gameId, playerId: 'player_0'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('게임 생성에 실패했습니다: $e'),
+          ),
+        );
+      }
     }
   }
 
