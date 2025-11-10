@@ -46,29 +46,34 @@ class GameLogic {
     }
 
     // 원카드 효과 처리
-    CardSuit? selectedSuit;
+    bool newDirection = gameState.direction;
     int? drawnCards;
-    bool? direction = gameState.direction;
-    int nextPlayerIndex = _getNextPlayerIndex(
-      gameState.players,
-      playerId,
-      gameState.direction,
-    );
+    CardSuit? selectedSuit;
 
     // 특수 카드 효과
-    if (card.rank == CardRank.ace) {
-      // A: 다음 플레이어 넘기기
-      nextPlayerIndex = _getNextPlayerIndex(
-        gameState.players,
-        gameState.players[nextPlayerIndex].id,
-        direction,
-      );
+    if (card.rank == CardRank.jack) {
+      // J: 방향 변경
+      newDirection = !gameState.direction;
+    } else if (card.rank == CardRank.ace) {
+      // A: 다음 플레이어 넘기기 (방향 전환 후 계산 필요)
     } else if (card.rank == CardRank.seven) {
       // 7: 다음 플레이어 2장 뽑기
       drawnCards = 2;
-    } else if (card.rank == CardRank.jack) {
-      // J: 방향 변경
-      direction = !gameState.direction;
+    }
+
+    int nextPlayerIndex = _getNextPlayerIndex(
+      gameState.players,
+      playerId,
+      newDirection,
+    );
+
+    if (card.rank == CardRank.ace) {
+      // A 효과로 다음 플레이어를 한 번 더 건너뜁니다.
+      nextPlayerIndex = _getNextPlayerIndex(
+        gameState.players,
+        gameState.players[nextPlayerIndex].id,
+        newDirection,
+      );
     }
 
     // 현재 플레이어 업데이트
@@ -82,7 +87,7 @@ class GameLogic {
       currentPlayer: newCurrentPlayer,
       selectedSuit: selectedSuit,
       drawnCards: drawnCards,
-      direction: direction,
+      direction: newDirection,
     );
   }
 
@@ -91,9 +96,8 @@ class GameLogic {
       return gameState;
     }
 
-    final drawnCard = DeckManager.drawCard(List.from(gameState.deck));
     final updatedDeck = List<Card>.from(gameState.deck);
-    updatedDeck.removeAt(0);
+    final drawnCard = updatedDeck.removeAt(0);
 
     final updatedPlayers = gameState.players.map((player) {
       if (player.id == playerId) {
@@ -103,18 +107,18 @@ class GameLogic {
       return player;
     }).toList();
 
-    // 뽑은 카드를 낼 수 있는지 체크
-    final drawnCards = gameState.drawnCards ?? 1;
-    if (drawnCards > 1) {
-      // 2장 이상 뽑아야 하는 경우 (7 효과)
-      if (drawnCards > 2) {
+    // 강제 드로우 (7카드 효과)
+    if (gameState.drawnCards != null) {
+      final remainingDraws = gameState.drawnCards! - 1;
+      if (remainingDraws > 0) {
+        // 아직 더 뽑아야 할 카드가 남음
         return gameState.copyWith(
           players: updatedPlayers,
           deck: updatedDeck,
-          drawnCards: drawnCards - 1,
+          drawnCards: remainingDraws,
         );
       } else {
-        // 2장 뽑기 완료, 다음 플레이어로
+        // 벌칙으로 뽑는 마지막 카드. 턴이 다음 플레이어에게 넘어감
         final nextPlayerIndex = _getNextPlayerIndex(
           gameState.players,
           playerId,
@@ -128,22 +132,23 @@ class GameLogic {
           }).toList(),
           currentPlayer: newCurrentPlayer,
           deck: updatedDeck,
-          drawnCards: null,
+          drawnCards: null, // 벌칙 종료
         );
       }
     }
 
-    // 1장 뽑은 경우, 낼 수 있으면 낼지 선택, 못내면 다음 플레이어
+    // 자발적 드로우
     final canPlay = canPlayCard(drawnCard, gameState);
 
     if (canPlay) {
-      // 자동으로 내기 (또는 UI에서 선택할 수 있게)
-      return gameState.copyWith(
+      // 뽑은 카드를 자동으로 냄
+      final tempState = gameState.copyWith(
         players: updatedPlayers,
         deck: updatedDeck,
       );
+      return playCard(tempState, playerId, drawnCard);
     } else {
-      // 다음 플레이어로
+      // 낼 수 없으면 턴이 다음 플레이어에게 넘어감
       final nextPlayerIndex = _getNextPlayerIndex(
         gameState.players,
         playerId,

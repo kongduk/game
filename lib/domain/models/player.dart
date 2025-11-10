@@ -18,7 +18,7 @@ class Player extends Equatable {
     String? id,
     String? name,
     List<Card>? hand,
-    bool? isActive,
+    bool? isActive, required bool hasDeclaredOneCard,
   }) =>
       Player(
         id: id ?? this.id,
