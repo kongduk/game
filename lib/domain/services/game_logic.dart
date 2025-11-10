@@ -35,17 +35,13 @@ class GameLogic {
     }).toList();
 
     // 승리 체크
-    final winner = updatedPlayers.firstWhere(
-      (p) => p.hasWon,
-      orElse: () => updatedPlayers.firstWhere((p) => p.id == playerId),
-    );
-
-    if (winner.hasWon) {
+    final currentPlayer = updatedPlayers.firstWhere((p) => p.id == playerId);
+    if (currentPlayer.hand.isEmpty) {
       return gameState.copyWith(
         players: updatedPlayers,
         topCard: card,
         status: GameStatus.finished,
-        winnerId: winner.id,
+        winnerId: playerId,
       );
     }
 
@@ -207,7 +203,8 @@ class GameLogic {
 
     // 각 플레이어에게 7장씩 카드 나누기
     for (var i = 0; i < playerNames.length; i++) {
-      final hand = DeckManager.drawCards(List.from(deck), 7);
+      final hand = deck.take(7).toList();
+      deck.removeRange(0, 7);
       players.add(Player(
         id: 'player_$i',
         name: playerNames[i],
@@ -217,7 +214,7 @@ class GameLogic {
     }
 
     // 맨 위 카드
-    final topCard = DeckManager.drawCard(List.from(deck));
+    final topCard = deck.removeAt(0);
 
     return GameState(
       id: '',
@@ -228,5 +225,16 @@ class GameLogic {
       status: GameStatus.playing,
       direction: true,
     );
+  }
+
+  static GameState declareOneCard(GameState gameState, String playerId) {
+    final updatedPlayers = gameState.players.map((player) {
+      if (player.id == playerId) {
+        return player.copyWith(hasDeclaredOneCard: true);
+      }
+      return player;
+    }).toList();
+
+    return gameState.copyWith(players: updatedPlayers);
   }
 }

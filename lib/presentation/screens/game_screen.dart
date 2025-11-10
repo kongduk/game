@@ -105,6 +105,22 @@ class GameScreen extends ConsumerWidget {
             '카드: ${opponent.hand.length}장',
             style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
+          if (opponent.hasDeclaredOneCard)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                '원카드!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           if (opponent.isActive)
             Container(
               margin: const EdgeInsets.only(top: 8),
@@ -279,6 +295,20 @@ class GameScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (myPlayer.hand.length == 2) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _declareOneCard(ref),
+                      icon: const Icon(Icons.flag),
+                      label: const Text('원카드'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
         ],
@@ -370,5 +400,10 @@ class GameScreen extends ConsumerWidget {
   Future<void> _drawCard(WidgetRef ref, GameState gameState, myPlayer) async {
     final gameNotifier = ref.read(gameNotifierProvider(gameId).notifier);
     await gameNotifier.drawCard(playerId);
+  }
+
+  Future<void> _declareOneCard(WidgetRef ref) async {
+    final gameNotifier = ref.read(gameNotifierProvider(gameId).notifier);
+    await gameNotifier.declareOneCard(playerId);
   }
 }

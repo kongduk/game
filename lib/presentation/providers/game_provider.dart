@@ -61,6 +61,14 @@ class GameNotifier extends StateNotifier<GameState?> {
     await _repository.updateGame(_gameId, gameState);
     state = gameState;
   }
+
+  Future<void> declareOneCard(String playerId) async {
+    if (state == null) return;
+
+    final newState = GameLogic.declareOneCard(state!, playerId);
+    await _repository.updateGame(_gameId, newState);
+    state = newState;
+  }
 }
 
 final gameNotifierProvider =
