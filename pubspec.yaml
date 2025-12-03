@@ -21,6 +21,7 @@ dependencies:
   # 유틸리티
   equatable: ^2.0.5
   uuid: ^4.2.1
+  path_provider: ^2.0.15
 
 dev_dependencies:
   flutter_test:

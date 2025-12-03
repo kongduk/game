@@ -46,6 +46,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _startGame() async {
     if (!_canStartGame) return;
 
+    // Immediate UI hint to confirm click reached the handler (debug)
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Start pressed (debug)'),
+          duration: Duration(milliseconds: 800),
+        ),
+      );
+    }
+
     final player1Name = player1Controller.text.trim();
     final player2Name = player2Controller.text.trim();
     final gameId = const Uuid().v4();
@@ -65,6 +75,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
       }
     } catch (e) {
+  // log error for debugging
+  // ignore: avoid_print
+  print('HomeScreen._startGame: createGame failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

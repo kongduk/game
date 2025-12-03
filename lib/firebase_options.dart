@@ -30,20 +30,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyAY62fj3FROJ1bAybobbI1fPSH3r1Wok1Q',
+    appId: '1:339731407174:web:78ea91b30a6b93c2a2c547',
+    messagingSenderId: '339731407174',
+    projectId: 'onecard-87163',
+    authDomain: 'onecard-87163.firebaseapp.com',
+    storageBucket: 'onecard-87163.firebasestorage.app',
+    measurementId: 'G-B88RFNNDJD',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyBGuu_oDSrdFtFVedPhaSoKGeaOjqFflso',
+    appId: '1:339731407174:android:fcb610a185ac33b7a2c547',
+    messagingSenderId: '339731407174',
+    projectId: 'onecard-87163',
+    storageBucket: 'onecard-87163.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
