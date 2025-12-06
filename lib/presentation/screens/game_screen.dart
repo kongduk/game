@@ -54,7 +54,7 @@ class GameScreen extends ConsumerWidget {
     );
     final isMyTurn = currentPlayer?.id == playerId;
 
-    return Column(
+  return Column(
       children: [
         // 상대방 정보
         Expanded(
@@ -81,8 +81,10 @@ class GameScreen extends ConsumerWidget {
   }
 
   Widget _buildOpponentSection(opponent, models.Card? topCard) {
+    // Reduced height area for opponent (smaller black rectangle)
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      height: 160, // smaller fixed height
       decoration: BoxDecoration(
         color: Colors.grey[800],
         borderRadius: const BorderRadius.only(
@@ -91,52 +93,59 @@ class GameScreen extends ConsumerWidget {
         ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             opponent.name,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             '카드: ${opponent.hand.length}장',
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
-          if (opponent.hasDeclaredOneCard)
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '원카드!',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (opponent.hasDeclaredOneCard)
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    '원카드!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          if (opponent.isActive)
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.yellow,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '턴 진행중',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+              if (opponent.isActive)
+                Container(
+                  margin: const EdgeInsets.only(left: 8, top: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    '턴 진행중',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -156,10 +165,10 @@ class GameScreen extends ConsumerWidget {
                 border: Border.all(color: Colors.black, width: 2),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
-                  BoxShadow(
+                  const BoxShadow(
                     color: Color.fromRGBO(0, 0, 0, 0.3),
                     blurRadius: 8,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
@@ -180,7 +189,7 @@ class GameScreen extends ConsumerWidget {
                   const Icon(Icons.info_outline),
                   const SizedBox(width: 8),
                   Text(
-                    '선택된 무늬: ${gameState.selectedSuit!.symbol}',
+                    '선택된 무늬: ${gameState.selectedSuit!.symbol} ${gameState.selectedSuit!.name}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -252,8 +261,11 @@ class GameScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Expanded(
+          // Fixed-height area to show two rows (4 columns) by default (8 cards visible)
+          SizedBox(
+            height: 2 * (140 + 8), // approximate card height + spacing
             child: GridView.builder(
+              padding: EdgeInsets.zero,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
                 crossAxisSpacing: 8,
@@ -271,7 +283,7 @@ class GameScreen extends ConsumerWidget {
 
                 return GestureDetector(
                   onTap: isMyTurn && canPlay
-                      ? () => _playCard(ref, card, gameState, myPlayer)
+                      ? () => _playCard(context, ref, card, gameState, myPlayer)
                       : null,
                   child: Opacity(
                     opacity: (isMyTurn && canPlay) ? 1.0 : 0.5,
@@ -283,34 +295,34 @@ class GameScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           if (isMyTurn)
-            Row(
-              children: [
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _drawCard(ref, gameState, myPlayer),
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text('카드 뽑기'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+              if (myPlayer.hand.length == 2) ...[
+                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _drawCard(ref, gameState, myPlayer),
-                    icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('카드 뽑기'),
+                    onPressed: () => _declareOneCard(ref),
+                    icon: const Icon(Icons.flag),
+                    label: const Text('원카드'),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
-                if (myPlayer.hand.length == 2) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _declareOneCard(ref),
-                      icon: const Icon(Icons.flag),
-                      label: const Text('원카드'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -325,11 +337,11 @@ class GameScreen extends ConsumerWidget {
         color: Colors.white,
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-      BoxShadow(
-        color: Color.fromRGBO(0, 0, 0, 0.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.2),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -391,10 +403,35 @@ class GameScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _playCard(
-      WidgetRef ref, models.Card card, GameState gameState, myPlayer) async {
+  Future<void> _playCard(BuildContext context, WidgetRef ref, models.Card card, GameState gameState, myPlayer) async {
     final gameNotifier = ref.read(gameNotifierProvider(gameId).notifier);
-    await gameNotifier.playCard(playerId, card);
+    final newState = await gameNotifier.playCard(playerId, card);
+
+    // If this player played a seven, require suit selection
+    if (newState != null && newState.topCard != null && newState.topCard!.rank == models.CardRank.seven) {
+      // If suit not yet selected (logic sets selectedSuit null for seven), prompt player
+      if (newState.selectedSuit == null && newState.currentPlayer?.id == playerId) {
+        if (!context.mounted) return;
+        final chosen = await showDialog<models.CardSuit?>(
+          context: context,
+          builder: (context) {
+            return SimpleDialog(
+              title: const Text('무늬를 선택하세요'),
+              children: models.CardSuit.values.map((suit) {
+                return SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, suit),
+                  child: Text('${suit.symbol} ${suit.name}'),
+                );
+              }).toList(),
+            );
+          },
+        );
+
+        if (chosen != null) {
+          await gameNotifier.selectSuit(chosen);
+        }
+      }
+    }
   }
 
   Future<void> _drawCard(WidgetRef ref, GameState gameState, myPlayer) async {

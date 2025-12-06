@@ -19,6 +19,7 @@ class GameNotifier extends StateNotifier<GameState?> {
   final GameRepository _repository;
   final String _gameId;
   final AiPlayer _ai = AiPlayer();
+  bool _busy = false;
 
   GameNotifier(this._repository, this._gameId) : super(null) {
     _loadGame();
@@ -35,26 +36,44 @@ class GameNotifier extends StateNotifier<GameState?> {
     state = gameState.copyWith(id: gameId);
   }
 
-  Future<void> playCard(String playerId, Card card) async {
-    if (state == null) return;
+  Future<GameState?> playCard(String playerId, Card card) async {
+    if (state == null) return null;
+    if (_busy) return null;
+    // If there's a pending draw penalty, only allow stacking defensive cards
+    if (state!.drawnCards != null && state!.drawnCards! > 0) {
+      if (!(card.rank == CardRank.two || card.rank == CardRank.ace || card.rank == CardRank.joker)) {
+        // Not allowed to play non-defensive card while penalty pending
+        return null;
+      }
+    }
+    _busy = true;
+    try {
+      final newState = GameLogic.playCard(state!, playerId, card);
+      await _repository.updateGame(_gameId, newState);
+      state = newState;
 
-    final newState = GameLogic.playCard(state!, playerId, card);
-    await _repository.updateGame(_gameId, newState);
-    state = newState;
-
-  // if next player is AI, let AI play
-  await _maybeRunAi();
+      // if next player is AI, let AI play
+      await _maybeRunAi();
+      return newState;
+    } finally {
+      _busy = false;
+    }
   }
 
   Future<void> drawCard(String playerId) async {
     if (state == null) return;
+    if (_busy) return;
+    _busy = true;
+    try {
+      final newState = GameLogic.drawCard(state!, playerId);
+      await _repository.updateGame(_gameId, newState);
+      state = newState;
 
-    final newState = GameLogic.drawCard(state!, playerId);
-    await _repository.updateGame(_gameId, newState);
-    state = newState;
-
-    // if next player is AI, let AI play
-    await _maybeRunAi();
+      // if next player is AI, let AI play
+      await _maybeRunAi();
+    } finally {
+      _busy = false;
+    }
   }
 
   Future<void> _maybeRunAi() async {
@@ -86,6 +105,8 @@ class GameNotifier extends StateNotifier<GameState?> {
     final newState = GameLogic.selectSuit(state!, suit);
     await _repository.updateGame(_gameId, newState);
     state = newState;
+  // After selecting suit, if it's AI's turn, let AI run
+  await _maybeRunAi();
   }
 
   Future<void> updateGame(GameState gameState) async {

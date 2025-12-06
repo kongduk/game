@@ -52,6 +52,7 @@ enum CardRank {
   jack,
   queen,
   king,
+  joker,
 }
 
 extension CardRankExtension on CardRank {
@@ -83,6 +84,8 @@ extension CardRankExtension on CardRank {
         return 12;
       case CardRank.king:
         return 13;
+      case CardRank.joker:
+        return 0;
     }
   }
 
@@ -114,6 +117,8 @@ extension CardRankExtension on CardRank {
         return 'Q';
       case CardRank.king:
         return 'K';
+      case CardRank.joker:
+        return 'JOK';
     }
   }
 }

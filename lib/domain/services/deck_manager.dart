@@ -9,7 +9,10 @@ class DeckManager {
         deck.add(Card(suit: suit, rank: rank));
       }
     }
-    return _shuffleDeck(deck);
+  // Add two jokers (suit used as clubs placeholder)
+  deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
+  deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
+  return _shuffleDeck(deck);
   }
 
   static List<Card> _shuffleDeck(List<Card> deck) {
