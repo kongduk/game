@@ -4,6 +4,7 @@ import '../../domain/services/game_logic.dart';
 import 'game_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../providers/game_provider.dart';
+import 'replay_list_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     player1Controller.addListener(_validateInput);
     player2Controller.addListener(_validateInput);
+  player1Controller.text = 'You';
+  player2Controller.text = 'AI';
+  // Do not auto-start. Allow user to choose start or view replays.
   }
 
   @override
@@ -88,6 +92,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  // auto-start removed; user will manually start or view replays
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,17 +139,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _canStartGame ? _startGame : null,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('게임 시작'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _canStartGame ? _startGame : null,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('게임 시작'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
                 ),
-                textStyle: const TextStyle(fontSize: 18),
-              ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReplayListScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.replay),
+                  label: const Text('다시보기'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ),
           ],
         ),), // Add closing parenthesis for SingleChildScrollView

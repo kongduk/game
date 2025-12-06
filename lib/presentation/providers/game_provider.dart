@@ -3,6 +3,7 @@ import '../../domain/models/game_state.dart';
 import '../../domain/models/card.dart';
 import '../../data/repositories/game_repository.dart';
 import '../../domain/services/game_logic.dart';
+import '../../domain/services/ai_player.dart';
 
 final gameRepositoryProvider = Provider<GameRepository>((ref) {
   return GameRepository();
@@ -17,6 +18,7 @@ final gameStateProvider =
 class GameNotifier extends StateNotifier<GameState?> {
   final GameRepository _repository;
   final String _gameId;
+  final AiPlayer _ai = AiPlayer();
 
   GameNotifier(this._repository, this._gameId) : super(null) {
     _loadGame();
@@ -39,6 +41,9 @@ class GameNotifier extends StateNotifier<GameState?> {
     final newState = GameLogic.playCard(state!, playerId, card);
     await _repository.updateGame(_gameId, newState);
     state = newState;
+
+  // if next player is AI, let AI play
+  await _maybeRunAi();
   }
 
   Future<void> drawCard(String playerId) async {
@@ -47,6 +52,32 @@ class GameNotifier extends StateNotifier<GameState?> {
     final newState = GameLogic.drawCard(state!, playerId);
     await _repository.updateGame(_gameId, newState);
     state = newState;
+
+    // if next player is AI, let AI play
+    await _maybeRunAi();
+  }
+
+  Future<void> _maybeRunAi() async {
+    if (state == null) return;
+    final current = state!.currentPlayer;
+    if (current == null) return;
+    if (current.name != 'AI') return;
+
+    // AI thinking and move loop until it's human's turn
+    while (state != null && state!.currentPlayer != null && state!.currentPlayer!.name == 'AI') {
+      await _ai.think();
+      final aiPlayer = state!.players.firstWhere((p) => p.name == 'AI');
+      final choice = _ai.chooseCard(aiPlayer, state!);
+      if (choice != null) {
+        final newState = GameLogic.playCard(state!, aiPlayer.id, choice);
+        await _repository.updateGame(_gameId, newState);
+        state = newState;
+      } else {
+        final newState = GameLogic.drawCard(state!, aiPlayer.id);
+        await _repository.updateGame(_gameId, newState);
+        state = newState;
+      }
+    }
   }
 
   Future<void> selectSuit(CardSuit suit) async {

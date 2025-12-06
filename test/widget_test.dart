@@ -14,6 +14,7 @@ void main() {
 
     // Verify that our home screen is loaded.
     expect(find.text('원카드 게임'), findsOneWidget);
-    expect(find.text('게임 시작'), findsOneWidget);
+  // There is a heading and a button both labeled '게임 시작'
+  expect(find.text('게임 시작'), findsNWidgets(2));
   });
 }

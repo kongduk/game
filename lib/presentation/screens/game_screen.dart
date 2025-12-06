@@ -157,7 +157,7 @@ class GameScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Color.fromRGBO(0, 0, 0, 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -326,8 +326,8 @@ class GameScreen extends ConsumerWidget {
         border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+      BoxShadow(
+        color: Color.fromRGBO(0, 0, 0, 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
