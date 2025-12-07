@@ -17,6 +17,11 @@ class SqliteGameDataSource {
   final StreamController<GameState?> _controller = StreamController.broadcast();
 
   Future<Database> get _database async {
+    // Check if database is closed, if so reset the reference
+    if (_db != null && !_db!.isOpen) {
+      _db = null;
+    }
+    
     if (_db != null) return _db!;
     final databasesPath = await sqflite.getDatabasesPath();
     final path = join(databasesPath, _dbName);

@@ -13,7 +13,7 @@ class GameLogic {
     // to accumulate the penalty. Other plays are disallowed until penalty resolved.
     if (gameState.drawnCards != null && gameState.drawnCards! > 0) {
       // allow stacking with another two, ace, or joker
-      if (card.rank == CardRank.two || card.rank == CardRank.ace || card.rank == CardRank.joker) {
+  if (card.rank == CardRank.two || card.rank == CardRank.ace || card.rank == CardRank.joker) {
         return true;
       }
       // otherwise can't play while penalty pending
@@ -24,6 +24,12 @@ class GameLogic {
     if (gameState.selectedSuit != null) {
       return card.suit == gameState.selectedSuit;
     }
+
+    // Joker can be played on any top card (wild).
+    if (card.rank == CardRank.joker) return true;
+
+    // Seven (7) can also be played on any card (allows suit change)
+    if (card.rank == CardRank.seven) return true;
 
     // 같은 무늬 또는 같은 숫자이면 낼 수 있음
     return card.suit == topCard.suit || card.rank == topCard.rank;
@@ -153,8 +159,8 @@ class GameLogic {
 
     final updatedDeck = List<Card>.from(gameState.deck);
 
-    // 강제 드로우 (여러 장 한 번에)
-    if (gameState.drawnCards != null) {
+    // 강제 드로우 (여러 장 한 번에) - only if there's an actual penalty (> 0)
+    if (gameState.drawnCards != null && gameState.drawnCards! > 0) {
       final count = gameState.drawnCards!;
       final drawn = DeckManager.drawCards(updatedDeck, count);
 
@@ -174,11 +180,12 @@ class GameLogic {
       );
       final newCurrentPlayer = updatedPlayers[nextPlayerIndex];
 
+      // After penalty drawing, reset drawnCards to 0 (penalty resolved)
       return gameState.copyWith(
         players: updatedPlayers.map((p) => p.copyWith(isActive: p.id == newCurrentPlayer.id)).toList(),
         currentPlayer: newCurrentPlayer,
         deck: updatedDeck,
-        drawnCards: null,
+        drawnCards: 0,
       );
     }
 
@@ -199,7 +206,20 @@ class GameLogic {
         players: updatedPlayers,
         deck: updatedDeck,
       );
-      return playCard(tempState, playerId, drawnCard);
+      // Explicitly set drawnCards to 0 to clear any penalty
+      final clearedState = GameState(
+        id: tempState.id,
+        players: tempState.players,
+        currentPlayer: tempState.currentPlayer,
+        deck: tempState.deck,
+        topCard: tempState.topCard,
+        status: tempState.status,
+        selectedSuit: tempState.selectedSuit,
+        drawnCards: 0,
+        direction: tempState.direction,
+        winnerId: tempState.winnerId,
+      );
+      return playCard(clearedState, playerId, drawnCard);
     } else {
       final nextPlayerIndex = _getNextPlayerIndex(
         gameState.players,
@@ -208,13 +228,19 @@ class GameLogic {
       );
       final newCurrentPlayer = updatedPlayers[nextPlayerIndex];
 
-      return gameState.copyWith(
+      return GameState(
+        id: gameState.id,
         players: updatedPlayers.map((p) {
           return p.copyWith(isActive: p.id == newCurrentPlayer.id);
         }).toList(),
         currentPlayer: newCurrentPlayer,
         deck: updatedDeck,
+        topCard: gameState.topCard,
+        status: gameState.status,
         selectedSuit: null,
+        drawnCards: 0, // Clear any existing penalty
+        direction: gameState.direction,
+        winnerId: gameState.winnerId,
       );
     }
   }

@@ -65,7 +65,9 @@ class GameNotifier extends StateNotifier<GameState?> {
     if (_busy) return;
     _busy = true;
     try {
-      final newState = GameLogic.drawCard(state!, playerId);
+      var newState = GameLogic.drawCard(state!, playerId);
+      // Force drawnCards to 0 to clear any penalty (using 0 instead of null because copyWith preserves null)
+      newState = newState.copyWith(drawnCards: 0);
       await _repository.updateGame(_gameId, newState);
       state = newState;
 
@@ -92,7 +94,9 @@ class GameNotifier extends StateNotifier<GameState?> {
         await _repository.updateGame(_gameId, newState);
         state = newState;
       } else {
-        final newState = GameLogic.drawCard(state!, aiPlayer.id);
+        var newState = GameLogic.drawCard(state!, aiPlayer.id);
+        // Force drawnCards to 0 to clear penalty (using 0 instead of null)
+        newState = newState.copyWith(drawnCards: 0);
         await _repository.updateGame(_gameId, newState);
         state = newState;
       }

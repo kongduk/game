@@ -118,6 +118,7 @@ extension CardRankExtension on CardRank {
       case CardRank.king:
         return 'K';
       case CardRank.joker:
+        // Joker should display without a suit symbol
         return 'JOK';
     }
   }
@@ -132,7 +133,11 @@ class Card extends Equatable {
     required this.rank,
   });
 
-  String get display => '${rank.display}${suit.symbol}';
+  String get display {
+    // Joker should not display suit symbol
+    if (rank == CardRank.joker) return rank.display;
+    return '${rank.display}${suit.symbol}';
+  }
 
   @override
   List<Object?> get props => [suit, rank];

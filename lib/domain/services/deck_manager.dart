@@ -6,12 +6,15 @@ class DeckManager {
     final List<Card> deck = [];
     for (final suit in CardSuit.values) {
       for (final rank in CardRank.values) {
+        // skip joker here; we'll add exactly two jokers below
+        if (rank == CardRank.joker) continue;
         deck.add(Card(suit: suit, rank: rank));
       }
     }
-  // Add two jokers (suit used as clubs placeholder)
-  deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
-  deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
+
+    // Add exactly two jokers. Use clubs as a placeholder suit for display.
+    deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
+    deck.add(const Card(suit: CardSuit.clubs, rank: CardRank.joker));
   return _shuffleDeck(deck);
   }
 
